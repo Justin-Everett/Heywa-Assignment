@@ -1,21 +1,28 @@
-import requests
-from dotenv import load_dotenv, dotenv_values
+from dotenv import load_dotenv
+from groq import Groq
 
-#Create a new API key programmatically from provisioning key
-def create_key() -> str:
-    load_dotenv()
-    config = dotenv_values(".env")
+load_dotenv()
 
-    url = "https://openrouter.ai/api/v1/keys"
+query = "What is the meaning of life"
 
-    payload = { "name": "string" }
-    headers = {
-        "Authorization": f'Bearer {config["PROVISIONING_API_KEY"]}',
-        "Content-Type": "application/json"
+#Boilerplate Groq post request from their docs
+client = Groq()
+completion = client.chat.completions.create(
+    model="openai/gpt-oss-20b",
+    messages=[
+    {
+        "role": "user",
+        #Set up prompt to be able to handle a varied user input
+        "content": f"Provide a json object answering the following question: {query}" 
     }
+    ],
+    temperature=1,
+    max_completion_tokens=8192,
+    top_p=1,
+    reasoning_effort="medium",
+    stream=False,
+    response_format={"type": "json_object"},
+    stop=None
+)
 
-    response = requests.post(url, json=payload, headers=headers) #Responds with new api key
-
-    return response.json()['key'] 
-
-print(create_key()) 
+print(completion.choices[0].message.content)
