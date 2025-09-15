@@ -46,7 +46,6 @@ def request(query):
 def main():
     while True:
         query = input("Enter user query (enter q to quit): ")
-        print(query)
         if not query.lower() == 'q':
             analyzed_query = request(query)
 
@@ -54,3 +53,6 @@ def main():
             print(json.dumps(json.loads(analyzed_query), indent=2))
 
         else: break
+
+if __name__ == "__main__":
+    main()
