@@ -54,6 +54,3 @@ def main():
             print(json.dumps(json.loads(analyzed_query), indent=2))
 
         else: break
-        
-if __name__ == "__main__":
-    main()
