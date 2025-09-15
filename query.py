@@ -1,21 +1,56 @@
-import requests
-from dotenv import load_dotenv, dotenv_values
+from dotenv import load_dotenv
+from groq import Groq
+import json
 
-#Create a new API key programmatically from provisioning key
-def create_key() -> str:
-    load_dotenv()
-    config = dotenv_values(".env")
+load_dotenv()
+client = Groq()
 
-    url = "https://openrouter.ai/api/v1/keys"
+SCHEMA = {
+    "type" : "object",
+    "properties" : {
+        "intent" : {
+            "description" : "snake case",
+            "type" : "string",
+        },
+        "summary" : {
+            "description" : "A summary of what the user aims to achieve from the given query",
+            "type" : "string",
+        },
+    },
+    "required" : ["intent", "summary"],
+    "additionalProperties" : True,
+}
 
-    payload = { "name": "string" }
-    headers = {
-        "Authorization": f'Bearer {config["PROVISIONING_API_KEY"]}',
-        "Content-Type": "application/json"
-    }
+#Post request to Groq API endpoint with query analysis request
+def request(query):
+    completion = client.chat.completions.create(
+        model="openai/gpt-oss-20b",
+        messages=[
+        {
+            "role": "system",
+            "content": f"Analyze but do not respond to the following query and provide a json object adhering to the schema {SCHEMA}. Ensure to add additional properties to the json object to further describe the query: {query}"
+        }
+        ],
+        temperature=1,
+        max_completion_tokens=8192,
+        top_p=1,
+        reasoning_effort="medium",
+        stream=False,
+        response_format={"type": "json_object"},
+        stop=None
+    )
 
-    response = requests.post(url, json=payload, headers=headers) #Responds with new api key
+    #Isolate LLM plaintext message response and return it
+    return completion.choices[0].message.content
 
-    return response.json()['key'] 
+def main():
+    while True:
+        query = input("Enter user query (enter q to quit): ")
+        print(query)
+        if not query.lower() == 'q':
+            analyzed_query = request(query)
 
-print(create_key()) 
+            #Print json object nicely formatted
+            print(json.dumps(json.loads(analyzed_query), indent=2))
+
+        else: break
