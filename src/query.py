@@ -9,7 +9,7 @@ SCHEMA = {
     "type" : "object",
     "properties" : {
         "intent" : {
-            "description" : "snake case",
+            "description" : "2 word snake case for high-level user intent",
             "type" : "string",
         },
         "summary" : {
